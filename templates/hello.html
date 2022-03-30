@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="style.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800&display=swap" rel="stylesheet"> 
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@800&display=swap');
+
+    body {        
+        font-family: 'Orbitron', sans-serif;
+    }
+
+  .kasten {
+    text-align: center;
+    padding: 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-transform: capitalize;
+    height: 2rem;
+  }
+
+  .kasten-falsch {
+    background-color: lightgray;
+  }
+
+  .kasten-richtig {
+    background-color: rgb(49, 172, 80);
+  }
+
+  .kasten-else {
+    
+  }
+
+  .grosserKasten {
+    grid-template-rows: repeat({{spielstand.zeilen}}, 1fr);
+    grid-template-columns: repeat({{spielstand.spalten}}, 1fr);
+    grid-gap: 20px;
+  }
+</style>
+
+<title>Wordle</title>
+
+
+<h1 class="text-bold text-center mt-10 text-6xl ml-[1rem] text-gray-500">  Wordle </h1>
+<div class="bg-gradient-to-r from-rose-500 to-sky-400 w-full h-6 mt-8"></div>
+<h1 id="loesung" class="mt-[0.5rem] ml-[1rem]">Lösung: </h1>
+<div class="flex text-center">
+    <div class="grid grosserKasten mt-1 pl-[1.8rem] pt-[1.3rem] mx-auto">
+    {% for i in range(spielstand.zeilen) %} {% for j in range(spielstand.spalten) %} {% if
+    istrichtig(gamefield.zeile, gamefield.spalte) %}
+    <div id="{{ i }}_{{ j }}" class="kasten kasten-richtig pl-[1.8rem] pt-[1.3rem]"></div>
+    {% elif not istrichtig(gamefield.zeile, gamefield.spalte) %}
+    <div id="{{ i }}_{{ j }}" class="kasten flex justify-center items-center w-20 h-20 rounded-md bg-gray-300 shadow text-gray-700"></div>
+    {% else %}
+    <div id="{{ i }}_{{ j }}" class="kasten kasten-else pl-[1.8rem] pt-[1.3rem]"></div>
+    {% endif %} {% endfor %} {% endfor %}
+    </div> 
+    <br>
+</div>
+
+<!-- <button class="w-[25%] bg-[#cbd1d1] ml-[38.2%] mt-[1%] h-20 text-xl rounded-3xl" onclick="refreshPage">Neues Spiel</button> -->
+
+<div class="bg-[blue] w-[36.4rem] h-[3rem] text-center mt-[1%] ml-[35.5%] text-white">
+  <a href="/reset-session">Neue Runde</a>
+</div>
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<script>
+
+  var zeile = {{ spielstand.aktuelleZeile }};
+  const zeilenInsg = {{ spielstand.zeilen }} -1;
+  var spalte = 0;
+
+  var elem = document.querySelector('body');
+  var text = '';
+  elem.addEventListener("keydown", getKey);
+
+  function refreshPage(event) {
+        
+  }
+
+  function getKey(event) {
+      let zeichen = event.key.toLowerCase();
+      if(zeichen == "backspace" && spalte >= 0) {
+          spalte = Math.max(0, spalte-1);
+          document.getElementById(zeile + '_' + spalte).innerText = "";
+          text = text.slice(0, -1);
+      }
+      if(zeichen.length == 1 && zeichen >= 'a' && zeichen <= 'z' && spalte < {{ spielstand.spalten }}) {
+          text += zeichen;
+          console.log(zeichen, zeile, spalte);
+          document.getElementById(zeile + '_' + spalte).innerText = zeichen;
+          spalte++;
+      }
+      if(zeichen == "enter" && spalte == {{ spielstand.spalten }}) {
+        fetch("/raten", {
+            method: 'POST',
+            headers: {"Content-type": "application/x-www-form-urlencoded; charset=UTF-8"},
+            body: 'guess=' + text  
+        })  
+        .then(response => response.json())
+        .then(function (data) {   
+            for (var i = 0; i < {{ spielstand.spalten }}; i++) {
+                var el = document.getElementById(zeile + '_' + i);
+                el.classList.remove(['bg-yellow-300', 'bg-gray-200', 'bg-green-300'])
+
+                if(data.result[i] == 0) {
+                    el.classList.add('bg-gray-200')
+                }
+                else if(data.result[i] == 1) {
+                    el.classList.add('bg-yellow-300')
+                }
+                else {
+                    el.classList.add('bg-green-300')
+                }
+            }
+            
+            if(zeile == zeilenInsg) {
+              document.getElementById("loesung").innerHTML = "Lösung: " + data.solution;
+              //finished = true;
+            }
+
+            zeile++;
+            spalte = 0;
+            text = '';
+
+        })
+        .catch(function (error) { 
+            console.log('Request failed', error);
+            alert(error);
+        });        
+      }
+  }
+</script>
