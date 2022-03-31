@@ -34,7 +34,10 @@ def test_eval8():
 
 
 def test_eval9():
-    assert evaluateGuess("wassers", "ssaaaaa") == [0, 1, 1, 1, 0, 0, 0]
+    eval = evaluateGuess("wasserfass", "wasserfall")
+    assert eval.count(0) == 2
+    assert eval.count(1) == 0
+    assert eval.count(2) == 8
 
 
 def test_eval10():
@@ -46,4 +49,10 @@ def test_eval11():
 
 
 def test_eval12():
-    assert evaluateGuess("wasssers", "ssaaaaas") == [0, 1, 1, 1, 1, 0, 0, 0]
+    eval = evaluateGuess("wasssers", "ssaaaaas")
+    assert eval.count(2) == 1
+
+
+def test_eval13():
+    eval = evaluateGuess("ei", "ei")
+    assert eval == [2, 2]
