@@ -1,3 +1,4 @@
+from cgitb import text
 from flask import Flask, redirect, render_template, request, session
 import random as rand
 
@@ -8,20 +9,33 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 words = []
 
 # TODO wenn buchstabe mehrfach vorkommt, nur den richtigen mit 2 markieren (wenn an richtiger stelle)
-# ansonsten, nur so viele mit 1 markieren, wie auch in dem wort vorkommen
+# ansonsten, nur so viele mit 1 markieren, wie auch in dem wort vorkommen <-- Noch fehlerhaft
 
-# TODO wenn spiel zu ende -> neu starten button
-# TODO beim seiten refresh aktuellen session spielstand anzeigen, so dass der nutzer später weiterspielen kann
+# words_easy = []  # < 5 buchstaben
+words_medium = []  # < 7 buchstaben [5, 6]
+words_hard = []  # < 9 buchstaben [7, 8]
+words_nightmare = []  # < 11
+words_impossible = []  # < 13
+
+# words__ = [words_easy, words_medium, ...]
+# words__[schwierigkeitsgtrad]
+
 
 with open("words.txt", "r") as file:
     dict = {}
+    length = 0
     for line in file:
         placeholder = len(line)
-        words.append(line.removesuffix("\n"))
-        if not placeholder in dict:
-            dict[placeholder] = 0
-        dict[placeholder] += 1
-    print(dict)
+        # if placeholder < 5:
+        # words_easy.append(line.rstrip("\n").lower())
+        if placeholder < 7:
+            words_medium.append(line.rstrip("\n").lower())
+        elif placeholder < 9:
+            words_hard.append(line.rstrip("\n").lower())
+        elif placeholder < 11:
+            words_nightmare.append(line.rstrip("\n").lower())
+        else:
+            words_impossible.append(line.rstrip("\n").lower())
 
 
 def istrichtig(zeile, spalte):
@@ -30,31 +44,54 @@ def istrichtig(zeile, spalte):
 
 @app.route("/reset-session")
 def resetSession():
-    session.clear()
+    session["schwierigkeitsgrad"] = request.args.get(
+        "difficulty", default="medium")
+    session["new_game"] = True
     return redirect("/")
+
+
+words = {
+    # "easy": words_easy,
+    "medium": words_medium,
+    "hard": words_hard,
+    "nightmare": words_nightmare,
+    "impossible": words_impossible
+}
+
+diff = {
+    # "easy": [2, 4],
+    "medium": [5, 5],
+    "hard": [7, 7],
+    "nightmare": [9, 9],
+    "impossible": [11, 11]  # TODO
+}
+
+
+def maxSpalten(difficulty):
+    [a, b] = diff[difficulty]
+    return rand.randint(a, b)
 
 
 @app.route("/")
 def hello():
-    # TODO oder wenn session finish ist true
-    if 'spielstand' not in session or session["finish"]:
-        spielstand = {"aktuelleZeile": 0, "spalten": rand.randint(
-            5, 12), "zeilen": rand.randint(5, 7)}
+    schwierigkeitsgrad = session.get("schwierigkeitsgrad", "medium")
+
+    if 'spielstand' not in session or session["finish"] or session.get("new_game", False):
+        session["new_game"] = False
+        s = maxSpalten(schwierigkeitsgrad)  # -1
+        # TODO mehr woerter
+        session["loesungsWort"] = rand.choice(
+            [x for x in words[schwierigkeitsgrad] if len(x) == s])
+        spalten = len(session["loesungsWort"])
+        spielstand = {"aktuelleZeile": 0,
+                      "spalten": spalten, "zeilen": spalten}
         session['spielstand'] = spielstand
         session["gamefield"] = [[0 for x in range(spielstand.get(
             "spalten"))] for y in range(spielstand.get("zeilen"))]
-        session["loesungsWort"] = rand.choice(
-            [x for x in words if len(x) == spielstand["spalten"]])
         session["finish"] = False
         session.update()
-    return render_template('hello.html', spielstand=session['spielstand'], istrichtig=istrichtig, gamefield=session["gamefield"])
+    return render_template('hello.html', schwierigkeitsgrad=schwierigkeitsgrad, spielstand=session['spielstand'], istrichtig=istrichtig, gamefield=session["gamefield"])
 
-
-# @app.route("/new-game", methods=['POST'])
-# def newGame():
-    # finish = True
-    # return "ok"
- #   pass
 
 def evaluateGuess(guess, solution):
     correctWordList = []
@@ -94,7 +131,7 @@ def evaluateGuess(guess, solution):
     return correctWordList
 
 
-@app.route("/raten", methods=['POST'])
+@ app.route("/raten", methods=['POST'])
 def correctWord():
     guess = request.form["guess"]
 

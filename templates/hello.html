@@ -28,10 +28,6 @@
     background-color: rgb(49, 172, 80);
   }
 
-  .kasten-else {
-    
-  }
-
   .grosserKasten {
     grid-template-rows: repeat({{spielstand.zeilen}}, 1fr);
     grid-template-columns: repeat({{spielstand.spalten}}, 1fr);
@@ -43,6 +39,20 @@
 
 
 <h1 class="text-bold text-center mt-10 text-6xl ml-[1rem] text-gray-500">  Wordle </h1>
+
+<form onchange="choiceDifficultyChanged()" action="/reset-session" request="get" class="flex items-center justify-center mt-6">
+  <select name="difficulty" id="choiceDifficulty" class="w-[12rem] h-[3rem] rounded-l-3xl text-center">
+    <!--<option value="easy">Easy</option>!-->
+    <option value="medium">Impossible</option> <!-- if {{ schwierigkeitsgrad }} == medium dann gebe aus: selected -->
+    <option value="hard">Hard</option>
+    <option value="nightmare">Medium</option>
+    <option value="impossible">Easy</option>
+  </select>
+  <button type="submit" class="bg-pink-500 w-[36.4rem] h-[3rem] text-white rounded-r-3xl flex hover:bg-indigo-700 justify-center items-center">
+    Neues Spiel
+  </button>
+</form>
+
 <div class="bg-gradient-to-r from-rose-500 to-sky-400 w-full h-6 mt-8"></div>
 <h1 id="loesung" class="mt-[0.5rem] ml-[1rem]">Lösung: </h1>
 <div class="flex text-center">
@@ -56,16 +66,12 @@
     <div id="{{ i }}_{{ j }}" class="kasten kasten-else pl-[1.8rem] pt-[1.3rem]"></div>
     {% endif %} {% endfor %} {% endfor %}
     </div> 
-    <br>
 </div>
 
 <!-- <button class="w-[25%] bg-[#cbd1d1] ml-[38.2%] mt-[1%] h-20 text-xl rounded-3xl" onclick="refreshPage">Neues Spiel</button> -->
 
-<div class="bg-[blue] w-[36.4rem] h-[3rem] text-center mt-[1%] ml-[35.5%] text-white">
-  <a href="/reset-session">Neue Runde</a>
-</div>
-
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/fireworks-js@latest/dist/fireworks.js"></script>
 
 <script>
 
@@ -77,8 +83,8 @@
   var text = '';
   elem.addEventListener("keydown", getKey);
 
-  function refreshPage(event) {
-        
+  function choiceDifficultyChanged(event) {
+    value = document.getElementById("choiceDifficulty").value
   }
 
   function getKey(event) {
