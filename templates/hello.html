@@ -1,8 +1,12 @@
 <!DOCTYPE html>
-<link rel="stylesheet" href="style.css" />
+<html>
+  <head>
+<link rel="preconnect" href="https://cdn.tailwindcss.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@800&display=swap" rel="stylesheet"> 
+
+<script src="https://cdn.tailwindcss.com"></script>
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@800&display=swap');
@@ -37,6 +41,13 @@
 
 <title>Wordle</title>
 
+</head>
+
+<body class="bg-white dark:bg-gray-900">
+
+  <button onclick="dark()" type="button" class="rounded-br-3xl dark:text-white bg-gray-300 dark:bg-[#212230] w-20 h-10">dark</button>
+
+<div class="fireworks-container fixed inset-0 pointer-events-none z-10"></div>
 
 <h1 class="text-bold text-center mt-10 text-6xl ml-[1rem] text-gray-500">  Wordle </h1>
 
@@ -52,16 +63,16 @@
     Neues Spiel
   </button>
 </form>
-
-<div class="bg-gradient-to-r from-rose-500 to-sky-400 w-full h-6 mt-8"></div>
-<h1 id="loesung" class="mt-[0.5rem] ml-[1rem]">Lösung: </h1>
+<!-- Inhalt von gamefield in kästen -->
+<div class="bg-gradient-to-r from-rose-500 to-sky-400 dark:from-rose-700 dark:to-sky-900 w-full h-6 mt-8"></div>
+<h1 id="loesung" class="dark:text-white mt-[0.5rem] ml-[1rem]">Lösung: </h1>
 <div class="flex text-center">
     <div class="grid grosserKasten mt-1 pl-[1.8rem] pt-[1.3rem] mx-auto">
     {% for i in range(spielstand.zeilen) %} {% for j in range(spielstand.spalten) %} {% if
     istrichtig(gamefield.zeile, gamefield.spalte) %}
     <div id="{{ i }}_{{ j }}" class="kasten kasten-richtig pl-[1.8rem] pt-[1.3rem]"></div>
     {% elif not istrichtig(gamefield.zeile, gamefield.spalte) %}
-    <div id="{{ i }}_{{ j }}" class="kasten flex justify-center items-center w-20 h-20 rounded-md bg-gray-300 shadow text-gray-700"></div>
+    <div id="{{ i }}_{{ j }}" class="kasten dark:text-white dark:bg-[#212230] flex justify-center items-center w-20 h-20 rounded-md bg-gray-300 shadow text-gray-700"></div>
     {% else %}
     <div id="{{ i }}_{{ j }}" class="kasten kasten-else pl-[1.8rem] pt-[1.3rem]"></div>
     {% endif %} {% endfor %} {% endfor %}
@@ -70,10 +81,68 @@
 
 <!-- <button class="w-[25%] bg-[#cbd1d1] ml-[38.2%] mt-[1%] h-20 text-xl rounded-3xl" onclick="refreshPage">Neues Spiel</button> -->
 
-<script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/fireworks-js@latest/dist/fireworks.js"></script>
 
-<script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+
+    function dark()
+    {
+      document.documentElement.classList.toggle('dark')
+
+      localStorage.theme = "dark"
+    }
+    
+  const container = document.querySelector('.fireworks-container')
+
+    const options = [
+    { 
+    delay: { min: 2, max: 2 },
+    particles: 100,
+    intensity: 60,
+    friction: 3,
+    explosion: 7,
+    gravity: 10,
+    trace: 100,
+    autoresize: true,
+    acceleration: 110.0,
+    friction: 0.6,
+    rocketPoint: 50,
+    traceSpeed: 100,
+    opacity: 1.0,
+    flickering: 100.00,
+    decay: { min: 0.01, max: 0.05 },
+    brightness: { min: 47, max: 50 },
+    hue: { min: 100, max: 1000}
+  },
+  { 
+    delay: { min: 2, max: 2 },
+    particles: 100,
+    intensity: 60,
+    friction: 3,
+    explosion: 7,
+    gravity: 1,
+    trace: 100,
+    autoresize: true,
+    acceleration: 110.0,
+    friction: 0.5,
+    rocketPoint: 50,
+    traceSpeed: 100,
+    opacity: 1.0,
+    flickering: 100.00,
+    decay: { min: 0.01, max: 0.05 },
+    brightness: { min: 47, max: 50 },
+    hue: { min: 100, max: 1000}
+  }
+    ]
+
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+  }
+
+  const fireworks = new Fireworks(container, options[getRandomInt(options.length)])
 
   var zeile = {{ spielstand.aktuelleZeile }};
   const zeilenInsg = {{ spielstand.zeilen }} -1;
@@ -83,11 +152,48 @@
   var text = '';
   elem.addEventListener("keydown", getKey);
 
+  function set(zeile, spalte, wert) {
+      var el = document.getElementById(zeile + '_' + spalte);
+
+      el.classList.remove(['bg-yellow-300', 'bg-gray-200', 'bg-green-300', 'dark:text-black'])
+
+      if(wert == 0) {
+          el.classList.add('bg-gray-200')
+      }
+      else if(wert == 1) {
+          el.classList.add('bg-yellow-300', 'dark:bg-red-500', 'dark:text-black')
+      }
+      else {
+          el.classList.add('bg-green-300', 'dark:bg-green-300', 'dark:text-black')
+      }
+  }
+
+  var gf = {{ gamefield|tojson }};
+
+  var index = 0
+  for(var i = 0; i < {{ spielstand.zeilen }}; i++) {
+    for(var j = 0; j < {{ spielstand.spalten }}; j++) {
+      let c = gf[i][j]
+      document.getElementById(i + "_" + j).innerText = c ? c : ''
+      index++
+
+      // set(zeile, i, data.result[i]);
+    }
+  }
+
+  if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('dark')
+  } 
+  else {
+    document.documentElement.classList.remove('dark')
+  }
+  
   function choiceDifficultyChanged(event) {
     value = document.getElementById("choiceDifficulty").value
   }
-
+  
   function getKey(event) {
+      console.log({{ spielstand.value }})
       let zeichen = event.key.toLowerCase();
       if(zeichen == "backspace" && spalte >= 0) {
           spalte = Math.max(0, spalte-1);
@@ -108,19 +214,12 @@
         })  
         .then(response => response.json())
         .then(function (data) {   
-            for (var i = 0; i < {{ spielstand.spalten }}; i++) {
-                var el = document.getElementById(zeile + '_' + i);
-                el.classList.remove(['bg-yellow-300', 'bg-gray-200', 'bg-green-300'])
+            if (data.richtigGeraten) {              
+              fireworks.start()
+            }
 
-                if(data.result[i] == 0) {
-                    el.classList.add('bg-gray-200')
-                }
-                else if(data.result[i] == 1) {
-                    el.classList.add('bg-yellow-300')
-                }
-                else {
-                    el.classList.add('bg-green-300')
-                }
+            for (var i = 0; i < {{ spielstand.spalten }}; i++) {
+              set(zeile, i, data.result[i]);
             }
             
             if(zeile == zeilenInsg) {
@@ -139,4 +238,7 @@
         });        
       }
   }
+
 </script>
+</body>
+</html>

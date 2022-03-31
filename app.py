@@ -1,5 +1,6 @@
 from cgitb import text
-from flask import Flask, redirect, render_template, request, session
+import json
+from flask import Flask, jsonify, redirect, render_template, request, session
 import random as rand
 
 app = Flask(__name__)
@@ -8,8 +9,7 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 words = []
 
-# TODO wenn buchstabe mehrfach vorkommt, nur den richtigen mit 2 markieren (wenn an richtiger stelle)
-# ansonsten, nur so viele mit 1 markieren, wie auch in dem wort vorkommen <-- Noch fehlerhaft
+# TODO text hintergrundfarben werden nach neuladen der Seite nicht angezeigt
 
 # words_easy = []  # < 5 buchstaben
 words_medium = []  # < 7 buchstaben [5, 6]
@@ -79,7 +79,6 @@ def hello():
     if 'spielstand' not in session or session["finish"] or session.get("new_game", False):
         session["new_game"] = False
         s = maxSpalten(schwierigkeitsgrad)  # -1
-        # TODO mehr woerter
         session["loesungsWort"] = rand.choice(
             [x for x in words[schwierigkeitsgrad] if len(x) == s])
         spalten = len(session["loesungsWort"])
@@ -90,7 +89,9 @@ def hello():
             "spalten"))] for y in range(spielstand.get("zeilen"))]
         session["finish"] = False
         session.update()
-    return render_template('hello.html', schwierigkeitsgrad=schwierigkeitsgrad, spielstand=session['spielstand'], istrichtig=istrichtig, gamefield=session["gamefield"])
+    return render_template('hello.html', schwierigkeitsgrad=schwierigkeitsgrad, spielstand=session['spielstand'],
+                           istrichtig=istrichtig,
+                           gamefield=session["gamefield"])
 
 
 def evaluateGuess(guess, solution):
@@ -134,17 +135,32 @@ def evaluateGuess(guess, solution):
 @ app.route("/raten", methods=['POST'])
 def correctWord():
     guess = request.form["guess"]
-
+    print("IGoieomgvefvm" + guess)
     # ERSTMAL WEGLASSEN: if guess not in words
     #    throw , abort(400)
 
     correctWordList = evaluateGuess(guess, session["loesungsWort"])
 
+    # list(guess) mappen auf correctWordList
+    # ['a' => 0, 'b' => 1, 'c' => 2, ...]
+    #x = dict(zip(list(guess), correctWordList))
+    # print(x)
+    session["gamefield"][session["spielstand"]["aktuelleZeile"]] = list(guess)
+
     session["spielstand"]["aktuelleZeile"] += 1
     result = {"result": correctWordList}
 
+    # session gamefoield -> auf guess setzen in der ak tutllen zeile
+
+    # print(session["gamefield"]) guess.split()
+    # zeile in gamefield erstetzen
+
+    print(session)
+
     if session["spielstand"]["aktuelleZeile"] >= session["spielstand"]["zeilen"] or guess == session["loesungsWort"]:
         result["solution"] = session["loesungsWort"]
+        result["richtigGeraten"] = guess == session["loesungsWort"]
+
         session["finish"] = True
 
     session.update()
