@@ -45,6 +45,11 @@
 
 <body class="bg-white dark:bg-gray-900">
 
+{% set alphabet = ["a", "b", "c", "d", "e", "f", "g", "h",
+"i", "j", "k", "l", "m", "n", "o", "p",
+"q", "r", "s", "t", "u", "v", "w", "x",
+"y", "z"] %}
+
 <button id="darkModeButton" onSubmit="submitFunction" onclick="dark" type="submit" class="rounded-br-3xl dark:text-white bg-gray-300 dark:bg-[#212230] w-20 h-10">dark</button>
 
 <div class="fireworks-container fixed inset-0 pointer-events-none z-10"></div>
@@ -75,9 +80,19 @@
     {% else %}
     <div id="{{ i }}_{{ j }}" class="kasten kasten-else pl-[1.8rem] pt-[1.3rem]"></div>
     {% endif %} {% endfor %} {% endfor %}
-    </div> 
+    </div>
+    
 </div>
-
+<div class="flex text-center mt-[1rem]">
+  <div class="mt-1 mx-auto flex flex-wrap w-30">
+  {% for i in range(26) %}
+    <div id="{{ i }}" class="break-all ml-[0.5rem] dark:text-white p-1 dark:bg-[#212230] flex justify-center items-center w-8 h-8 rounded-md bg-gray-300 shadow text-gray-700">
+      {{ alphabet[i] }}
+    </div>
+  {% endfor %}
+  </div>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/fireworks-js@latest/dist/fireworks.js"></script>
 
   <script>
@@ -186,6 +201,27 @@
     var text = '';
     elem.addEventListener("keydown", getKey);
 
+    function isInText(letter, textForFunction) {
+      for(var i = 0; i < textForFunction.length; i++) {
+        if(letter == textForFunction.charAt(i)) {
+          return true
+        }
+      }
+    }
+
+    function setLetter(elNumber, wert) {
+      var el = document.getElementById(elNumber);
+
+      el.classList.remove(['bg-yellow-300', 'bg-gray-200', 'bg-green-300', 'dark:text-black'])
+
+      switch(wert) {
+        case 0: el.classList.add('bg-gray-200'); break;
+        case 1: el.classList.add('bg-yellow-300', 'dark:bg-red-500', 'dark:text-black'); break;
+        case 2: el.classList.add('bg-green-300', 'dark:bg-green-300', 'dark:text-black'); break;
+        default: console.error("Fehler in [setLetter] function")
+      }
+    }
+
     function set(zeile, spalte, wert) {
         var el = document.getElementById(zeile + '_' + spalte);
 
@@ -202,7 +238,7 @@
         }
     }
 
-    var gf = {{ gamefield|tojson }};
+    var gf = {{ gamefield|tojson }}
     // Place text nach reload in Kästen
     var index = 0
     for(var i = 0; i < {{ spielstand.zeilen }}; i++) {
@@ -244,7 +280,7 @@
               method: 'POST',
               headers: {"Content-type": "application/x-www-form-urlencoded; charset=UTF-8"},
               body: 'guess=' + text  
-          })  
+          })
           .then(response => response.json())
           .then(function (data) {   
               if (data.richtigGeraten) {              
@@ -254,6 +290,17 @@
               for (var i = 0; i < {{ spielstand.spalten }}; i++) {
                 set(zeile, i, data.result[i]);
               }
+
+              // for(var i = 0; i < 26; i++) {
+              //   let c = gf[i][j]
+              //   var el = document.getElementById(i);
+              //   // chosenKeys
+              //   for(var i = 0; i < text.length; i++) {
+              //     if(isInText(el.value, text[0])) {
+              //       setLetter(i, c.wert || 0)
+              //     }
+              //   }
+              // }
               
               if(zeile == zeilenInsg) {
                 document.getElementById("loesung").innerHTML = "Lösung: " + data.solution;

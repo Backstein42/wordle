@@ -79,7 +79,8 @@ def hello():
         session.update()
     return render_template('hello.html', schwierigkeitsgrad=schwierigkeitsgrad, spielstand=session['spielstand'],
                            istrichtig=istrichtig,
-                           gamefield=session["gamefield"])
+                           gamefield=session["gamefield"],
+                           chosenKeys=session.get("chosenKeys", []))
 
 
 def evaluateGuess(guess, solution):
@@ -129,6 +130,11 @@ def correctWord():
 
     session["gamefield"][session["spielstand"]["aktuelleZeile"]] = [
         {"buchstabe": x, "wert": y} for (x, y) in zip(list(guess), correctWordList)]
+
+    # session["chosenKeys"] = []
+    # for row in session["gamefield"]:
+    #     # row alle buchstaben rausfiltern und in session["chosenKeys"] inserten
+    #     pass
 
     print(session["gamefield"][session["spielstand"]["aktuelleZeile"]])
 
