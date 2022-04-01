@@ -176,7 +176,7 @@
       return Math.floor(Math.random() * max);
     }
 
-    const fireworks = new Fireworks(container, options[2])
+    const fireworks = new Fireworks(container, options[getRandomInt(options.length)])
 
     var zeile = {{ spielstand.aktuelleZeile }};
     const zeilenInsg = {{ spielstand.zeilen }} -1;
