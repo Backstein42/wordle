@@ -150,6 +150,25 @@
     decay: { min: 0.01, max: 0.05 },
     brightness: { min: 47, max: 50 },
     hue: { min: 100, max: 1000}
+    },
+    { 
+    delay: { min: 2, max: 2 },
+    particles: 100,
+    intensity: 60,
+    friction: 3,
+    explosion: 7,
+    gravity: 1,
+    trace: 100,
+    autoresize: true,
+    acceleration: 110.0,
+    friction: 0.5,
+    rocketPoint: 50,
+    traceSpeed: 100,
+    opacity: 0.0,
+    flickering: 100.00,
+    decay: { min: 0.01, max: 0.05 },
+    brightness: { min: 47, max: 50 },
+    hue: { min: 100, max: 1000}
     }
     ]
 
@@ -157,7 +176,7 @@
       return Math.floor(Math.random() * max);
     }
 
-    const fireworks = new Fireworks(container, options[getRandomInt(options.length)])
+    const fireworks = new Fireworks(container, options[2])
 
     var zeile = {{ spielstand.aktuelleZeile }};
     const zeilenInsg = {{ spielstand.zeilen }} -1;
