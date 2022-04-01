@@ -45,7 +45,7 @@
 
 <body class="bg-white dark:bg-gray-900">
 
-  <button onclick="dark()" type="button" class="rounded-br-3xl dark:text-white bg-gray-300 dark:bg-[#212230] w-20 h-10">dark</button>
+<button id="darkModeButton" onSubmit="submitFunction" onclick="dark" type="submit" class="rounded-br-3xl dark:text-white bg-gray-300 dark:bg-[#212230] w-20 h-10">dark</button>
 
 <div class="fireworks-container fixed inset-0 pointer-events-none z-10"></div>
 
@@ -53,8 +53,7 @@
 
 <form onchange="choiceDifficultyChanged()" action="/reset-session" request="get" class="flex items-center justify-center mt-6">
   <select name="difficulty" id="choiceDifficulty" class="w-[12rem] h-[3rem] rounded-l-3xl text-center">
-    <!--<option value="easy">Easy</option>!-->
-    <option value="medium">Impossible</option> <!-- if {{ schwierigkeitsgrad }} == medium dann gebe aus: selected -->
+    <option value="medium">Impossible</option>
     <option value="hard">Hard</option>
     <option value="nightmare">Medium</option>
     <option value="impossible">Easy</option>
@@ -63,7 +62,7 @@
     Neues Spiel
   </button>
 </form>
-<!-- Inhalt von gamefield in kästen -->
+
 <div class="bg-gradient-to-r from-rose-500 to-sky-400 dark:from-rose-700 dark:to-sky-900 w-full h-6 mt-8"></div>
 <h1 id="loesung" class="dark:text-white mt-[0.5rem] ml-[1rem]">Lösung: </h1>
 <div class="flex text-center">
@@ -79,24 +78,40 @@
     </div> 
 </div>
 
-<!-- <button class="w-[25%] bg-[#cbd1d1] ml-[38.2%] mt-[1%] h-20 text-xl rounded-3xl" onclick="refreshPage">Neues Spiel</button> -->
-
 <script src="https://cdn.jsdelivr.net/npm/fireworks-js@latest/dist/fireworks.js"></script>
 
   <script>
+
+    var werteForReloadColor = []
+
     tailwind.config = {
       darkMode: 'class',
     }
 
-    function dark()
+    function dark(event)
     {
       document.documentElement.classList.toggle('dark')
-
       localStorage.theme = "dark"
     }
-    
-  const container = document.querySelector('.fireworks-container')
 
+    element = document.getElementById("darkModeButton")
+
+    function submitFunction() {
+      if (element.addEventListener) {
+        element.addEventListener("submit", function(evt) {
+          evt.preventDefault();
+          window.history.back();
+        }, true);
+      }
+      else {
+        element.attachEvent('onsubmit', function(evt){
+          evt.preventDefault();
+          window.history.back();
+        });
+      }
+    }
+    
+    const container = document.querySelector('.fireworks-container')
     const options = [
     { 
     delay: { min: 2, max: 2 },
@@ -116,8 +131,8 @@
     decay: { min: 0.01, max: 0.05 },
     brightness: { min: 47, max: 50 },
     hue: { min: 100, max: 1000}
-  },
-  { 
+    },
+    { 
     delay: { min: 2, max: 2 },
     particles: 100,
     intensity: 60,
@@ -135,109 +150,107 @@
     decay: { min: 0.01, max: 0.05 },
     brightness: { min: 47, max: 50 },
     hue: { min: 100, max: 1000}
-  }
+    }
     ]
 
-  function getRandomInt(max) {
-    return Math.floor(Math.random() * max);
-  }
-
-  const fireworks = new Fireworks(container, options[getRandomInt(options.length)])
-
-  var zeile = {{ spielstand.aktuelleZeile }};
-  const zeilenInsg = {{ spielstand.zeilen }} -1;
-  var spalte = 0;
-
-  var elem = document.querySelector('body');
-  var text = '';
-  elem.addEventListener("keydown", getKey);
-
-  function set(zeile, spalte, wert) {
-      var el = document.getElementById(zeile + '_' + spalte);
-
-      el.classList.remove(['bg-yellow-300', 'bg-gray-200', 'bg-green-300', 'dark:text-black'])
-
-      if(wert == 0) {
-          el.classList.add('bg-gray-200')
-      }
-      else if(wert == 1) {
-          el.classList.add('bg-yellow-300', 'dark:bg-red-500', 'dark:text-black')
-      }
-      else {
-          el.classList.add('bg-green-300', 'dark:bg-green-300', 'dark:text-black')
-      }
-  }
-
-  var gf = {{ gamefield|tojson }};
-
-  var index = 0
-  for(var i = 0; i < {{ spielstand.zeilen }}; i++) {
-    for(var j = 0; j < {{ spielstand.spalten }}; j++) {
-      let c = gf[i][j]
-      document.getElementById(i + "_" + j).innerText = c ? c : ''
-      index++
-
-      // set(zeile, i, data.result[i]);
+    function getRandomInt(max) {
+      return Math.floor(Math.random() * max);
     }
-  }
 
-  if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    document.documentElement.classList.add('dark')
-  } 
-  else {
-    document.documentElement.classList.remove('dark')
-  }
-  
-  function choiceDifficultyChanged(event) {
-    value = document.getElementById("choiceDifficulty").value
-  }
-  
-  function getKey(event) {
-      console.log({{ spielstand.value }})
-      let zeichen = event.key.toLowerCase();
-      if(zeichen == "backspace" && spalte >= 0) {
-          spalte = Math.max(0, spalte-1);
-          document.getElementById(zeile + '_' + spalte).innerText = "";
-          text = text.slice(0, -1);
+    const fireworks = new Fireworks(container, options[getRandomInt(options.length)])
+
+    var zeile = {{ spielstand.aktuelleZeile }};
+    const zeilenInsg = {{ spielstand.zeilen }} -1;
+    var spalte = 0;
+
+    var elem = document.querySelector('body');
+    var text = '';
+    elem.addEventListener("keydown", getKey);
+
+    function set(zeile, spalte, wert) {
+        var el = document.getElementById(zeile + '_' + spalte);
+
+        el.classList.remove(['bg-yellow-300', 'bg-gray-200', 'bg-green-300', 'dark:text-black'])
+
+        if(wert == 0) {
+            el.classList.add('bg-gray-200')
+        }
+        else if(wert == 1) {
+            el.classList.add('bg-yellow-300', 'dark:bg-red-500', 'dark:text-black')
+        }
+        else {
+            el.classList.add('bg-green-300', 'dark:bg-green-300', 'dark:text-black')
+        }
+    }
+
+    var gf = {{ gamefield|tojson }};
+    // Place text nach reload in Kästen
+    var index = 0
+    for(var i = 0; i < {{ spielstand.zeilen }}; i++) {
+      for(var j = 0; j < {{ spielstand.spalten }}; j++) {
+        let c = gf[i][j]
+        document.getElementById(i + "_" + j).innerText = c ? c.buchstabe : ''
+        set(i, j, c.wert || 0)
+        index++
       }
-      if(zeichen.length == 1 && zeichen >= 'a' && zeichen <= 'z' && spalte < {{ spielstand.spalten }}) {
-          text += zeichen;
-          console.log(zeichen, zeile, spalte);
-          document.getElementById(zeile + '_' + spalte).innerText = zeichen;
-          spalte++;
-      }
-      if(zeichen == "enter" && spalte == {{ spielstand.spalten }}) {
-        fetch("/raten", {
-            method: 'POST',
-            headers: {"Content-type": "application/x-www-form-urlencoded; charset=UTF-8"},
-            body: 'guess=' + text  
-        })  
-        .then(response => response.json())
-        .then(function (data) {   
-            if (data.richtigGeraten) {              
-              fireworks.start()
-            }
+    }
 
-            for (var i = 0; i < {{ spielstand.spalten }}; i++) {
-              set(zeile, i, data.result[i]);
-            }
-            
-            if(zeile == zeilenInsg) {
-              document.getElementById("loesung").innerHTML = "Lösung: " + data.solution;
-              //finished = true;
-            }
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark')
+    } 
+    else {
+      document.documentElement.classList.remove('dark')
+    }
+    
+    function choiceDifficultyChanged(event) {
+      value = document.getElementById("choiceDifficulty").value
+    }
+    
+    function getKey(event) {
+        console.log({{ spielstand.value }})
+        let zeichen = event.key.toLowerCase();
+        if(zeichen == "backspace" && spalte >= 0) {
+            spalte = Math.max(0, spalte-1);
+            document.getElementById(zeile + '_' + spalte).innerText = "";
+            text = text.slice(0, -1);
+        }
+        if(zeichen.length == 1 && zeichen >= 'a' && zeichen <= 'z' && spalte < {{ spielstand.spalten }}) {
+            text += zeichen;
+            console.log(zeichen, zeile, spalte);
+            document.getElementById(zeile + '_' + spalte).innerText = zeichen;
+            spalte++;
+        }
+        if(zeichen == "enter" && spalte == {{ spielstand.spalten }}) {
+          fetch("/raten", {
+              method: 'POST',
+              headers: {"Content-type": "application/x-www-form-urlencoded; charset=UTF-8"},
+              body: 'guess=' + text  
+          })  
+          .then(response => response.json())
+          .then(function (data) {   
+              if (data.richtigGeraten) {              
+                fireworks.start()
+              }
+              werteForReloadColor = data.result
+              for (var i = 0; i < {{ spielstand.spalten }}; i++) {
+                set(zeile, i, data.result[i]);
+              }
+              
+              if(zeile == zeilenInsg) {
+                document.getElementById("loesung").innerHTML = "Lösung: " + data.solution;
+              }
 
-            zeile++;
-            spalte = 0;
-            text = '';
+              zeile++;
+              spalte = 0;
+              text = '';
 
-        })
-        .catch(function (error) { 
-            console.log('Request failed', error);
-            alert(error);
-        });        
-      }
-  }
+          })
+          .catch(function (error) { 
+              console.log('Request failed', error);
+              alert(error);
+          });        
+        }
+    }
 
 </script>
 </body>

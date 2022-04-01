@@ -9,25 +9,15 @@ app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 words = []
 
-# TODO text hintergrundfarben werden nach neuladen der Seite nicht angezeigt
-
-# words_easy = []  # < 5 buchstaben
-words_medium = []  # < 7 buchstaben [5, 6]
-words_hard = []  # < 9 buchstaben [7, 8]
-words_nightmare = []  # < 11
-words_impossible = []  # < 13
-
-# words__ = [words_easy, words_medium, ...]
-# words__[schwierigkeitsgtrad]
-
+words_medium = []
+words_hard = []
+words_nightmare = []
+words_impossible = []
 
 with open("words.txt", "r") as file:
-    dict = {}
     length = 0
     for line in file:
         placeholder = len(line)
-        # if placeholder < 5:
-        # words_easy.append(line.rstrip("\n").lower())
         if placeholder < 7:
             words_medium.append(line.rstrip("\n").lower())
         elif placeholder < 9:
@@ -51,7 +41,6 @@ def resetSession():
 
 
 words = {
-    # "easy": words_easy,
     "medium": words_medium,
     "hard": words_hard,
     "nightmare": words_nightmare,
@@ -59,7 +48,6 @@ words = {
 }
 
 diff = {
-    # "easy": [2, 4],
     "medium": [5, 5],
     "hard": [7, 7],
     "nightmare": [9, 9],
@@ -78,7 +66,7 @@ def hello():
 
     if 'spielstand' not in session or session["finish"] or session.get("new_game", False):
         session["new_game"] = False
-        s = maxSpalten(schwierigkeitsgrad)  # -1
+        s = maxSpalten(schwierigkeitsgrad)
         session["loesungsWort"] = rand.choice(
             [x for x in words[schwierigkeitsgrad] if len(x) == s])
         spalten = len(session["loesungsWort"])
@@ -136,24 +124,18 @@ def evaluateGuess(guess, solution):
 def correctWord():
     guess = request.form["guess"]
     print("IGoieomgvefvm" + guess)
-    # ERSTMAL WEGLASSEN: if guess not in words
-    #    throw , abort(400)
 
     correctWordList = evaluateGuess(guess, session["loesungsWort"])
 
-    # list(guess) mappen auf correctWordList
-    # ['a' => 0, 'b' => 1, 'c' => 2, ...]
-    #x = dict(zip(list(guess), correctWordList))
-    # print(x)
-    session["gamefield"][session["spielstand"]["aktuelleZeile"]] = list(guess)
+    session["gamefield"][session["spielstand"]["aktuelleZeile"]] = [
+        {"buchstabe": x, "wert": y} for (x, y) in zip(list(guess), correctWordList)]
+
+    print(session["gamefield"][session["spielstand"]["aktuelleZeile"]])
 
     session["spielstand"]["aktuelleZeile"] += 1
-    result = {"result": correctWordList}
-
-    # session gamefoield -> auf guess setzen in der ak tutllen zeile
-
-    # print(session["gamefield"]) guess.split()
-    # zeile in gamefield erstetzen
+    result = {
+        "result": correctWordList
+    }
 
     print(session)
 
